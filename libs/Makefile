@@ -23,4 +23,4 @@ lib_dynamic_runtime.o: lib_dynamic_runtime.c
 	gcc -c -fPIC lib_dynamic_runtime.c
 
 clean:
-	-rm -f *.o *.so *.a
+	-rm -f *.o *.so *.a project
