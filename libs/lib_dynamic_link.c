@@ -1,0 +1,3 @@
+char* f_dynamic_link(){
+  return "YA DINAMICHESKAYA BIBLIOTEKA, SLINKOVANNAYA NA ETAPE LINKOVKI\n";
+}
