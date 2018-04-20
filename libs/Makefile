@@ -1,5 +1,5 @@
 project: main.o lib_static.a lib_dynamic_link.so lib_dynamic_runtime.so
-	gcc -o project main.o -L. -l lib_static.a -ldl -l lib_dynamic_link.so -Wl,-rpath,.
+	gcc -o project main.o -L. -l_static -ldl -l_dynamic_link -Wl,-rpath,.
 
 main.o: main.c
 	gcc -c main.c
@@ -23,4 +23,4 @@ lib_dynamic_runtime.o: lib_dynamic_runtime.c
 	gcc -c -fPIC lib_dynamic_runtime.c
 
 clean:
-	-rm -f *.o *.so *.a project
+	-rm -f *.o *.so *.a
