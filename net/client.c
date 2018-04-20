@@ -62,16 +62,20 @@ void do_get(char *remote_file, char *local_file){
 				}
             }
 		}
-		if(attempts >= MAX_CLIENT_ATTEMPTS){
+		if(attempts >= MAX_CLIENT_ATTEMPTS) {
 			fprintf(stderr, "Coudn't acquire data block #%d after %d retreivals.\n", block, MAX_CLIENT_ATTEMPTS);
             fprintf(stderr, "File download failed.\n");
-    		fclose(fp);
+            if(fp != NULL) {
+    		    fclose(fp);
+            }
             return;
 		}
 		block++;
 	} while(r_size == DATA_SIZE + 4);
     printf("File has been successfully downloaded\n");
-	fclose(fp);
+    if(fp != NULL) {
+	    fclose(fp);
+    }
 }
 
 void help(char ** argv) {
