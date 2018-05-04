@@ -15,6 +15,10 @@ int main() {
 		return 0;
 	};
 	func = dlsym(dynlib, "f_dynamic_runtime");
+	if(!func) {
+		fprintf(stderr, "Can't find f_dynamic_runtime!\n");
+		return 0;
+	}
 	printf("%s",(*func)());
 	dlclose(dynlib);
 	return 0;
