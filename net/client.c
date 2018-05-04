@@ -19,13 +19,6 @@ void do_get(char *remote_file, char *local_file){
 	sprintf(snd_packet.filename, "%s%c%s%c%d%c", remote_file, 0, "octet", 0, DATA_SIZE, 0);
 	sendto(sock, &snd_packet, sizeof(struct tftp_packet), 0, (struct sockaddr*)&server, addr_len);
 
-    //check for file not found error;
-
-	/* = fopen(local_file, "w");
-	if(fp == NULL){
-		fprintf(stderr, "Can't create file %s\n", local_file);
-		return;
-	}*/
     FILE *fp = NULL;
 
 	snd_packet.cmd = htons(CMD_ACK);

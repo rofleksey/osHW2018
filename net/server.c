@@ -5,6 +5,8 @@
 
 #include "tftp.h"
 
+char * server_ip;
+
 
 void rrq(int sock, struct tftp_request *request){
 	struct tftp_packet snd_packet;
@@ -48,7 +50,7 @@ void rrq(int sock, struct tftp_request *request){
 	do{
 		memset(snd_packet.data, 0, sizeof(snd_packet.data));
 		snd_packet.block = htons(block);
-		s_size = fread(snd_packet.data, 1, blocksize, fp); ///GOVNO
+		s_size = fread(snd_packet.data, 1, blocksize, fp);
 		if(send_packet(sock, &snd_packet, s_size + 4) == -1){
 			fprintf(stderr, "Failed to send file to client\n");
 			fclose(fp);
@@ -64,7 +66,7 @@ void rrq(int sock, struct tftp_request *request){
 void run(struct tftp_request * request) {
     int sock;
     struct sockaddr_in server;
-	static socklen_t addr_len = sizeof(struct sockaddr_in);
+	//static socklen_t addr_len = sizeof(struct sockaddr_in);
     if(request->size <= 0){
 		fprintf(stderr, "Bad request size\n");
         free(request);
@@ -75,13 +77,13 @@ void run(struct tftp_request * request) {
         return;
 	}
     server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = 0;
+	server.sin_addr.s_addr = inet_addr(server_ip);
+	server.sin_port = htons(0);
     if (bind(sock, (struct sockaddr *)&server, sizeof(server)) < 0){
 		fprintf(stderr, "Socket bind failed\n");
         goto cleanup;
 	}
-	if(connect(sock, (struct sockaddr*)&(request->client), addr_len) < 0){
+	if(connect(sock, (struct sockaddr*)&(request->client), sizeof(request->client)) < 0){
 		fprintf(stderr, "Socket connection failed\n");
 		goto cleanup;
 	}
@@ -99,14 +101,14 @@ void run(struct tftp_request * request) {
 }
 
 void help(char ** argv) {
-    printf("Usage: %s port\n", argv[0]);
+    printf("Usage: %s address port\n", argv[0]);
 }
 
 int main(int argc, char ** argv) {
     int sockfd, portno;
     struct sockaddr_in serv_addr;
-    if (argc < 2) {
-        fprintf(stderr, "No port provided\n");
+    if (argc < 3) {
+        fprintf(stderr, "Need 2 arguments\n");
         help(argv);
         exit(1);
     }
@@ -116,9 +118,10 @@ int main(int argc, char ** argv) {
         exit(1);
     }
     //bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = atoi(argv[1]);
+    server_ip = argv[1];
+    portno = atoi(argv[2]);
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_addr.s_addr = inet_addr(server_ip);
     serv_addr.sin_port = htons(portno);
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("Server bind failed");
