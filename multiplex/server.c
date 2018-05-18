@@ -1,24 +1,6 @@
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <dirent.h>
-#include <errno.h>
+#include "util.h"
 
-#define BUFFER_LENGTH 1024
-#define DEFAULT_PORT 1337
 #define MAX_CLIENTS 10
-#define true 1
-#define false 0
 
 void printUsageAndExit() {
 	fprintf(stderr, "Usage: ./server [port]\n");
@@ -29,12 +11,12 @@ int main(int argc, char *argv[]){
 	//ГРИБНОЙ СУП БЫЛ ОЧЕНЬ ВКУСНЫЙ, НО ОН ВНЕЗАПНО КОНЧИЛСЯ, И МНЕ СТАЛО ГРУСТНО :(
 	signal(SIGPIPE, SIG_IGN);
 	int opt = true;
-	int masterSock, addrlen, clientSock, clients[MAX_CLIENTS], activity, readResult, curSock;
+	int masterSock, addrlen, clientSock, clients[MAX_CLIENTS], activity, curSock;
 	int maxSocketDescriptor;
 	struct sockaddr_in address;
 	char buffer[BUFFER_LENGTH];
 	fd_set clientsSet;
-	char * greetingsTraveler = "Yanny or Laurel?";
+	char * greetingsTraveler = "Yanny or Laurel?\n";
 	int port = DEFAULT_PORT;
 	if(argc > 2) {
 		printUsageAndExit();
@@ -99,7 +81,7 @@ int main(int argc, char *argv[]){
 				exit(EXIT_FAILURE);
 			}
 			printf("Client (fd %d) connected [%s:%d]\n", clientSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-			if(send(clientSock, greetingsTraveler, strlen(greetingsTraveler), 0) != strlen(greetingsTraveler)) {
+			if(sendFully(clientSock, greetingsTraveler, strlen(greetingsTraveler)) < 0) {
 				perror("Failed to send data to client");
 			}
 			for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -113,18 +95,17 @@ int main(int argc, char *argv[]){
 		for (int i = 0; i < MAX_CLIENTS; i++) {
 			curSock = clients[i];
 			if (FD_ISSET(curSock, &clientsSet)) {
-				if ((readResult = read( curSock, buffer, BUFFER_LENGTH)) <= 0) {
-					getpeername(curSock, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-					close(curSock);
-					clients[i] = 0;
-					if(readResult == 0) {
-						printf("Client (fd %d) [%s:%d] has been disconnected\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-					} else {
-						printf("Client (fd %d) [%s:%d] has been violently disintegrated and it's unsatisfied soul is still wandering around the globe to find peace and soup\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
-					}
-				} else{
-					buffer[readResult] = '\0';
-					printf("Client (fd %d) [%s:%d] replied: '%s'\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port), buffer);
+				int length = 0;
+				int result = readFully(curSock, buffer, &length);
+				getpeername(curSock, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+				close(curSock);
+				clients[i] = 0;
+				if(result >= 0) {
+					//remove this annoying \n
+					buffer[length-1] = '\0';
+					printf("Client (fd %d) [%s:%d] replied and disconnected: '%s'\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port), buffer);
+				} else {
+					printf("Client (fd %d) [%s:%d] has been violently disintegrated and it's unsatisfied soul is still wandering around the globe to find peace and soup\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 				}
 			}
 		}

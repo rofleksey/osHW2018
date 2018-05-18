@@ -1,24 +1,6 @@
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <dirent.h>
-#include <errno.h>
+#include "util.h"
 
-#define BUFFER_LENGTH 1024
-#define DEFAULT_PORT 1337
 #define CONNECTIONS_NUMBER 5
-#define true 1
-#define false 0
 
 void printUsageAndExit() {
 	fprintf(stderr, "Usage: ./client address port\n");
@@ -69,7 +51,7 @@ int main(int argc, char *argv[]) {
 		printf("Client (fd %d) has connected to server\n", sock);
 		clients[i] = sock;
 	}
-	int activity, curSock, readResult, maxSocketDescriptor;
+	int activity, curSock, maxSocketDescriptor;
 	fd_set clientsSet;
 	char buffer[BUFFER_LENGTH];
 	int clientsBurriedAliveRIP2018 = 0;
@@ -92,12 +74,17 @@ int main(int argc, char *argv[]) {
 		for (int i = 0; i < CONNECTIONS_NUMBER; i++) {
 			curSock = clients[i];
 			if (FD_ISSET(curSock, &clientsSet)) {
-				if ((readResult = read(curSock, buffer, BUFFER_LENGTH)) <= 0) {
+				int length = 0;
+				int result = readFully(curSock, buffer, &length);
+				if(result < 0) {
 					printf("Client (fd %d) has been violently disintegrated and it's unsatisfied soul is still wandering around the globe to find peace and soup\n", curSock);
-				} else{
-					buffer[readResult] = '\0';
+				} else {
+					buffer[length] = '\0';
 					printf("Client (fd %d) is replying to server...\n", curSock);
-					send(curSock, buffer, strlen(buffer), 0);
+					if(sendFully(curSock, buffer, strlen(buffer)) < 0) {
+						perror("Failed to reply");
+						exit(EXIT_FAILURE);
+					}
 					printf("Client (fd %d) has replied and disconnected\n", curSock);
 				}
 				close(curSock);
