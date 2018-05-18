@@ -120,7 +120,7 @@ int main(int argc, char *argv[]){
 					if(readResult == 0) {
 						printf("Client (fd %d) [%s:%d] has been disconnected\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 					} else {
-						printf("Client (fd %d) [%s:%d] has been violently disintegrated and it's unsatisfied soul is still wondering around the globe to find peace and soup\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
+						printf("Client (fd %d) [%s:%d] has been violently disintegrated and it's unsatisfied soul is still wandering around the globe to find peace and soup\n", curSock, inet_ntoa(address.sin_addr), ntohs(address.sin_port));
 					}
 				} else{
 					buffer[readResult] = '\0';

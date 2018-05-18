@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 			curSock = clients[i];
 			if (FD_ISSET(curSock, &clientsSet)) {
 				if ((readResult = read(curSock, buffer, BUFFER_LENGTH)) <= 0) {
-					printf("Client (fd %d) has been violently disintegrated and it's unsatisfied soul is still wondering around the globe to find peace and soup\n", curSock);
+					printf("Client (fd %d) has been violently disintegrated and it's unsatisfied soul is still wandering around the globe to find peace and soup\n", curSock);
 				} else{
 					buffer[readResult] = '\0';
 					printf("Client (fd %d) is replying to server...\n", curSock);
