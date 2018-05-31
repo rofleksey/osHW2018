@@ -28,15 +28,16 @@ int main(int argc, char *argv[]) {
 	int clients[CONNECTIONS_NUMBER];
 	for(int i = 0; i < CONNECTIONS_NUMBER; i++) {
 		int sock;
-		if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		if ((sock = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)) < 0) {
 			perror("Could not create socket");
 			exit(EXIT_FAILURE);
 		}
-		if (connect(sock, (struct sockaddr*)&serverAddressIn,
-		            sizeof(serverAddressIn)) < 0) {
-			perror("Could not connect to server");
-			exit(EXIT_FAILURE);
-		}
+		connect(sock, (struct sockaddr*)&serverAddressIn, sizeof(serverAddressIn));
+		/*if ((c == -1) && (errno == EINPROGRESS)) {
+	        connected[i] = false;
+	    } else {
+			connected[i] = true;
+		}*/
 		struct timeval timeout;
 		timeout.tv_sec = 60;
 		timeout.tv_usec = 0;
